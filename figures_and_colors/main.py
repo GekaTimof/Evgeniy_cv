@@ -1,7 +1,4 @@
 from collections import defaultdict
-from itertools import combinations
-from math import trunc
-
 import matplotlib
 matplotlib.use("TkAgg")
 import numpy as np
