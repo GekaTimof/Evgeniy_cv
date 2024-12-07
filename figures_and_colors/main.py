@@ -57,7 +57,6 @@ for key in regions_colors.keys():
 color_figures_count = defaultdict(lambda: 0)
 for i, region in enumerate(regions):
     if is_ball(region):
-        plt.figure()
         color_figures_count['ball'] += 1
         color_figures_count[f'ball-{regions_colors[i+1]}'] += 1
     else:
