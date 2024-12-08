@@ -39,7 +39,7 @@ def extractor(region):
 
 def classificator(regions):
     tests_number = 2
-    match_percent = 15
+    match_percent = 10
     classes = {}
     classes_id = 1
     print("\nStart classification:")
