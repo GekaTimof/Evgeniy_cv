@@ -1,5 +1,3 @@
-from time import sleep
-
 import matplotlib
 matplotlib.use("TkAgg")
 import numpy as np
