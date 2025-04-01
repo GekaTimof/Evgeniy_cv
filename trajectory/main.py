@@ -33,38 +33,18 @@ def set_orders(centers, centers_last):
         val = None
         pos = None
         for i, point2 in enumerate(remaining):
+            dist = distance(point1, point2)
             if val is None:
                 pos = i
-                val = distance(point1, point2)
+                val = dist
             else:
-                if distance(point1, point2) < val:
+                if  dist< val:
                     pos = i
-                    val = distance(point1, point2)
+                    val = dist
         order.append([point1, remaining[pos]])
         remaining.pop(pos)
 
     return order
-
-    # current = centers[0]
-    # order = [current]
-    # remaining = centers[1:]
-    #
-    # while remaining:
-    #     dist = None
-    #     pos = None
-    #     for i, point in enumerate(remaining):
-    #         if pos is None:
-    #             pos = i
-    #             dist = distance(current, point)
-    #         else:
-    #             if distance(current, point) < dist:
-    #                 dist = distance(current, point)
-    #                 pos = i
-    #     order.append(remaining[pos])
-    #     current = remaining[pos]
-    #     remaining.pop(pos)
-    # return order
-
 
 directory = "files/out/"
 files = os.listdir(directory)
@@ -77,22 +57,23 @@ for file in files:
     files_sort[id] = file
 print(files_sort)
 
+centers = None
 image = None
-image_last = None
 
 plt.figure()
 for file in files_sort:
     # save last image
     if image is None:
         image = np.load(directory + file)
+        centers = get_move_points(image)
 
     else:
-        image_last = image
+        centers_last = centers
 
         print(f"{file}")
         image = np.load(directory+file)
         centers = get_move_points(image)
-        centers_last = get_move_points(image_last)
+        # centers_last = get_move_points(image_last)
         print(centers)
         print(centers_last)
 
