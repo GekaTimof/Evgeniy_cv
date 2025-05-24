@@ -1,5 +1,4 @@
-import math
-
+import zmq
 import numpy as np
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
@@ -9,12 +8,6 @@ import time
 
 
 def angle(a, b, c):
-    # ab = a[0] * b[0] + a[1] * b[1]
-    # ma = (a[0] ** 2 + a[1] ** 2) ** 0.5
-    # mb = (b[0] ** 2 + b[1] ** 2) ** 0.5
-    # angle_ = ab / (ma * mb)
-    # return np.rad2deg(np.arccos(angle_))
-
     d = np.arctan2(c[1] - b[1], c[0] - b[0])
     e = np.arctan2(a[1] - b[1], a[0] - b[0])
     angle_ = np.rad2deg(d - e)
@@ -27,6 +20,10 @@ def process(image, keypoints):
     right_ear_seen = keypoints[4][0] > 0 and keypoints[0][1] > 0
     left_shoulder = keypoints[5]
     right_shoulder = keypoints[6]
+    left_elbow = keypoints[7]
+    right_elbow = keypoints[8]
+    left_hand = keypoints[9]
+    right_hand = keypoints[10]
     left_hip = keypoints[11]
     right_hip = keypoints[12]
     left_knee = keypoints[13]
@@ -34,19 +31,19 @@ def process(image, keypoints):
     left_ankle = keypoints[15]
     right_ankle = keypoints[16]
 
-    knee = [0, 0]
-    angle_knee = -1
+    elbow = [0, 0]
+    angle_elbow = -1
     try:
         if left_ear_seen and not right_ear_seen:
-            angle_knee = angle(left_hip, left_knee, left_ankle)
-            knee = left_knee
+            angle_elbow = angle(left_shoulder, left_elbow, left_hand)
+            elbow = left_elbow
         else:
-            angle_knee = angle(right_hip, right_knee, right_ankle)
-            knee = right_knee
+            angle_elbow = angle(right_shoulder, right_elbow, right_hand)
+            elbow = right_elbow
 
-        x, y = int(knee[0]) + 10, int(knee[1]) + 10
-        cv2.putText(image, f"{int(angle_knee)}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (25, 25, 255), 1)
-        return int(angle_knee)
+        x, y = int(elbow[0]) + 10, int(elbow[1]) + 10
+        cv2.putText(image, f"{int(angle_elbow)}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (25, 25, 255), 1)
+        return int(angle_elbow)
 
     except ZeroDivisionError:
         return None
@@ -66,7 +63,8 @@ count = 0
 writer = cv2.VideoWriter("videos/out.mp4", cv2.VideoWriter_fourcc(*"MP4V"), 20, (640, 480))
 while cap.isOpened():
     ret, frame = cap.read()
-    writer.write(frame)
+    frame_counter = frame.copy()
+
     cure_time = time.time()
     cv2.putText(frame, f"FPS: {1 / (cure_time - last_time):.1f}", (10, 30), cv2.FONT_HERSHEY_DUPLEX, 1, (25, 255, 25), 1)
     last_time = cure_time
@@ -97,11 +95,11 @@ while cap.isOpened():
     annotated = annotator.result()
 
     angle_ = process(annotated, keypoints)
-    if flag and angle_ > 160:
+    if flag and angle_ > 150:
         flag = False
         count += 1
         last_move = time.time()
-    elif not flag and angle_< 140:
+    elif not flag and angle_< 110:
         flag = True
         last_move = time.time()
 
@@ -109,8 +107,12 @@ while cap.isOpened():
         count = 0
 
     cv2.putText(annotated, f"Count = {count}", (10, 60),
-                cv2.FONT_HERSHEY_DUPLEX, 1, (25, 255, 25),1)
+                cv2.FONT_HERSHEY_DUPLEX, 1, (25, 25, 255),1)
     cv2.imshow("Pose", annotated)
+
+    cv2.putText(frame_counter, f"Count = {count}", (10, 60),
+                cv2.FONT_HERSHEY_DUPLEX, 1, (25, 25, 255), 1)
+    writer.write(frame_counter)
 
 writer.release()
 cap.release()
